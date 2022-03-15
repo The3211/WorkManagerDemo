@@ -42,7 +42,42 @@ class MainActivity : AppCompatActivity() {
             .setInputData(data)
             .build()
 
-        workManager.enqueue(uploadRequest)
+        val uploadWorkerMoreRequest = OneTimeWorkRequest.Builder(UploadWorkerMore::class.java)
+            .build()
+
+        val uploadWorkMoreAgainRequest = OneTimeWorkRequest.Builder(UploadWorkMoreAgain::class.java)
+            .build()
+
+
+//        workManager.enqueue(uploadRequest)
+
+        /**
+         * chaining request belpw
+         * below is sequential chaining
+         */
+
+       /* workManager.beginWith(uploadRequest)
+            .then(uploadWorkerMoreRequest)
+            .then(uploadWorkMoreAgainRequest)
+            .enqueue()*/
+
+
+        /**
+         * this below is example of paraller with sequential chaining.
+         */
+
+        val parallelWorkReq = OneTimeWorkRequest.Builder(UploadWorkParallel::class.java)
+            .build()
+
+        val parallelWorks = mutableListOf<OneTimeWorkRequest>()
+        parallelWorks.add(uploadRequest)
+        parallelWorks.add(parallelWorkReq)
+
+        workManager.beginWith(parallelWorkReq)
+            .then(uploadWorkerMoreRequest)
+            .then(uploadWorkMoreAgainRequest)
+            .enqueue()
+
         workManager.getWorkInfoByIdLiveData(uploadRequest.id).observe(this, Observer {
             textView.text = it.state.name
             if(it.state.isFinished){
