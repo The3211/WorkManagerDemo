@@ -5,13 +5,13 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.lifecycle.Observer
-import androidx.work.Constraints
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequest
-import androidx.work.WorkManager
+import androidx.work.*
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        const val dataKey = "intVal"
+    }
 
     lateinit var textView: TextView
 
@@ -27,18 +27,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun setOneTimeWorkRequest() {
         val workManager = WorkManager.getInstance(applicationContext)
+
+        val data: Data = Data.Builder()
+            .putInt(dataKey, 60000)
+            .build()
+
         val constraints = Constraints.Builder()
             .setRequiresCharging(true)
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val uploadRequest = OneTimeWorkRequest.Builder(UploadWorker::class.java)
-                .setConstraints(constraints)
-                .build()
+            .setConstraints(constraints)
+            .setInputData(data)
+            .build()
 
         workManager.enqueue(uploadRequest)
         workManager.getWorkInfoByIdLiveData(uploadRequest.id).observe(this, Observer {
             textView.text = it.state.name
+            if(it.state.isFinished){
+                val dataObj = it.outputData
+                val str = dataObj.getString(UploadWorker.KEY_WORKER)
+            }
         })
     }
 }
