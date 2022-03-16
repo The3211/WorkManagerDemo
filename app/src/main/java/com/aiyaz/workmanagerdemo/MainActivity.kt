@@ -1,10 +1,9 @@
 package com.aiyaz.workmanagerdemo
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
-import androidx.lifecycle.Observer
+import androidx.appcompat.app.AppCompatActivity
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 
@@ -14,7 +13,7 @@ class MainActivity : AppCompatActivity() {
         const val dataKey = "intVal"
     }
 
-    lateinit var textView: TextView
+    private lateinit var textView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +53,7 @@ class MainActivity : AppCompatActivity() {
 //        workManager.enqueue(uploadRequest)
 
         /**
-         * chaining request belpw
+         * chaining request below
          * below is sequential chaining
          */
 
@@ -65,7 +64,7 @@ class MainActivity : AppCompatActivity() {
 
 
         /**
-         * this below is example of paraller with sequential chaining.
+         * this below is example of parallel with sequential chaining.
          */
 
         val parallelWorkReq = OneTimeWorkRequest.Builder(UploadWorkParallel::class.java)
@@ -80,13 +79,13 @@ class MainActivity : AppCompatActivity() {
             .then(uploadWorkMoreAgainRequest)
             .enqueue()
 
-        workManager.getWorkInfoByIdLiveData(uploadRequest.id).observe(this, Observer {
+        workManager.getWorkInfoByIdLiveData(uploadRequest.id).observe(this) {
             textView.text = it.state.name
-            if(it.state.isFinished){
+            if (it.state.isFinished) {
                 val dataObj = it.outputData
                 val str = dataObj.getString(UploadWorker.KEY_WORKER)
             }
-        })
+        }
     }
 
     private fun setPeriodicWorkRequest(){
